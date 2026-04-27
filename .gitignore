@@ -52,3 +52,4 @@ hf_release/*.json
 # Claude Code working files (must never reach Hugging Face / git remote)
 .claude/
 CLAUDE.md
+hf_space/
