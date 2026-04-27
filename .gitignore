@@ -53,3 +53,4 @@ hf_release/*.json
 .claude/
 CLAUDE.md
 hf_space/
+hf_release/
