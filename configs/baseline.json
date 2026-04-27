@@ -1,0 +1,27 @@
+{
+  "images_dir": "data/raw/Images",
+  "processed_dir": "data/processed",
+
+  "embed_size": 256,
+  "hidden_size": 512,
+  "num_layers": 1,
+  "dropout": 0.5,
+  "backbone": "resnet50",
+
+  "batch_size": 32,
+  "num_workers": 4,
+  "num_epochs": 15,
+  "lr": 3e-4,
+  "weight_decay": 0.0,
+  "grad_clip": 5.0,
+  "scheduler_patience": 3,
+  "scheduler_factor": 0.5,
+
+  "seed": 42,
+  "save_dir": "models",
+  "run_name": "baseline",
+  "log_interval": 50,
+  "wandb_project": "flickr8k-captioning",
+  "wandb_mode": "online",
+  "val_bleu_subset": 200
+}

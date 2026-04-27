@@ -1,0 +1,12 @@
+# Runtime dependencies for the FastAPI + Gradio container.
+# Torch + torchvision are installed separately from the pytorch CPU index
+# in the Dockerfile so this file stays compatible with the default PyPI.
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.30,<1.0
+pydantic>=2.9,<3.0
+python-multipart>=0.0.20
+gradio>=5.0,<7.0
+matplotlib>=3.8
+pillow>=11.0
+numpy>=1.26,<3.0

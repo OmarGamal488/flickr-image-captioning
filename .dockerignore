@@ -1,0 +1,58 @@
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.python-version
+
+# Git
+.git/
+.github/
+.gitignore
+
+# Data (only ship vocab and the final checkpoint, not the raw dataset)
+data/raw/
+data/raw
+data/processed/train_data.pkl
+data/processed/val_data.pkl
+data/processed/test_data.pkl
+
+# Training artifacts we don't need at inference
+models/baseline*
+models/attention_gru*
+models/attention_lstm_hpo*
+models/attention_lstm-smoke*
+models/*_train.log
+models/*_history.json
+models/.gitkeep
+
+# Analysis + training logs + notebooks — not needed for serving
+notebooks/
+experiments/
+wandb/
+reports/
+tests/
+scripts/
+
+# Only the beam5 metrics json is kept for /model-info
+results/metrics_greedy*
+results/metrics_beam5_predictions.json
+results/results_grid.png
+results/attention_maps/
+results/gradcam/
+
+# Configs only needed at training time
+configs/
+
+# Docs / meta files
+*.md
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.swp
+.claude/
+
+# Kaggle credentials should never ship
+kaggle.json

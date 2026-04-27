@@ -1,0 +1,295 @@
+{
+  "n_trials": 20,
+  "best_value": 0.18071196511759155,
+  "best_params": {
+    "embed_size": 512,
+    "hidden_size": 1024,
+    "attention_dim": 128,
+    "dropout": 0.32930163420191516,
+    "decoder_lr": 0.0004833180632488466,
+    "rnn_type": "lstm",
+    "alpha_c": 1.2427653651669053
+  },
+  "trials": [
+    {
+      "number": 0,
+      "state": "COMPLETE",
+      "value": 0.08984989110890508,
+      "params": {
+        "embed_size": 256,
+        "hidden_size": 256,
+        "attention_dim": 256,
+        "dropout": 0.5124217733388137,
+        "decoder_lr": 0.00010485387725194633,
+        "rnn_type": "lstm",
+        "alpha_c": 0.8185086660174142
+      }
+    },
+    {
+      "number": 1,
+      "state": "COMPLETE",
+      "value": 0.10133924207000825,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 256,
+        "attention_dim": 128,
+        "dropout": 0.40990855298810747,
+        "decoder_lr": 0.0002858051065806936,
+        "rnn_type": "lstm",
+        "alpha_c": 1.2713516576204174
+      }
+    },
+    {
+      "number": 2,
+      "state": "COMPLETE",
+      "value": 0.18071196511759155,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 128,
+        "dropout": 0.32930163420191516,
+        "decoder_lr": 0.0004833180632488466,
+        "rnn_type": "lstm",
+        "alpha_c": 1.2427653651669053
+      }
+    },
+    {
+      "number": 3,
+      "state": "COMPLETE",
+      "value": 0.12555360413736005,
+      "params": {
+        "embed_size": 256,
+        "hidden_size": 256,
+        "attention_dim": 512,
+        "dropout": 0.5325398470083343,
+        "decoder_lr": 0.0008699593128513321,
+        "rnn_type": "lstm",
+        "alpha_c": 1.8828113525346752
+      }
+    },
+    {
+      "number": 4,
+      "state": "COMPLETE",
+      "value": 0.09376955981594842,
+      "params": {
+        "embed_size": 256,
+        "hidden_size": 512,
+        "attention_dim": 128,
+        "dropout": 0.46280882494747455,
+        "decoder_lr": 0.00013833249975219982,
+        "rnn_type": "lstm",
+        "alpha_c": 1.980330404900776
+      }
+    },
+    {
+      "number": 5,
+      "state": "COMPLETE",
+      "value": 0.12668631449516365,
+      "params": {
+        "embed_size": 128,
+        "hidden_size": 256,
+        "attention_dim": 128,
+        "dropout": 0.3347607178575389,
+        "decoder_lr": 0.000729631248971116,
+        "rnn_type": "lstm",
+        "alpha_c": 0.5953375254290354
+      }
+    },
+    {
+      "number": 6,
+      "state": "COMPLETE",
+      "value": 0.1459269105625356,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 512,
+        "attention_dim": 512,
+        "dropout": 0.46838315927084884,
+        "decoder_lr": 0.0005901564798023387,
+        "rnn_type": "gru",
+        "alpha_c": 1.1413115275378245
+      }
+    },
+    {
+      "number": 7,
+      "state": "PRUNED",
+      "value": 0.08842302849458127,
+      "params": {
+        "embed_size": 256,
+        "hidden_size": 256,
+        "attention_dim": 128,
+        "dropout": 0.5266653415629146,
+        "decoder_lr": 0.00016935505549297937,
+        "rnn_type": "gru",
+        "alpha_c": 0.7418319308810066
+      }
+    },
+    {
+      "number": 8,
+      "state": "PRUNED",
+      "value": 0.08401892162917372,
+      "params": {
+        "embed_size": 128,
+        "hidden_size": 256,
+        "attention_dim": 128,
+        "dropout": 0.568827389977048,
+        "decoder_lr": 0.00020797133276936357,
+        "rnn_type": "gru",
+        "alpha_c": 1.1406616829393845
+      }
+    },
+    {
+      "number": 9,
+      "state": "PRUNED",
+      "value": 0.09926198188051906,
+      "params": {
+        "embed_size": 256,
+        "hidden_size": 256,
+        "attention_dim": 512,
+        "dropout": 0.39696087960622656,
+        "decoder_lr": 0.00033021030455152565,
+        "rnn_type": "lstm",
+        "alpha_c": 1.957673124081441
+      }
+    },
+    {
+      "number": 10,
+      "state": "COMPLETE",
+      "value": 0.1493688241001116,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.3053885626844459,
+        "decoder_lr": 0.0004707504770865693,
+        "rnn_type": "gru",
+        "alpha_c": 1.5420317888324402
+      }
+    },
+    {
+      "number": 11,
+      "state": "COMPLETE",
+      "value": 0.1689241927983121,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.30262421009058316,
+        "decoder_lr": 0.0004577646904463142,
+        "rnn_type": "gru",
+        "alpha_c": 1.5501118838374333
+      }
+    },
+    {
+      "number": 12,
+      "state": "PRUNED",
+      "value": 0.10938873522354416,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.3545258772281156,
+        "decoder_lr": 0.00040519224430252886,
+        "rnn_type": "gru",
+        "alpha_c": 1.5720494257291697
+      }
+    },
+    {
+      "number": 13,
+      "state": "COMPLETE",
+      "value": 0.15262143775040032,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.3044200889329839,
+        "decoder_lr": 0.0005378763591367705,
+        "rnn_type": "gru",
+        "alpha_c": 1.4589574477659308
+      }
+    },
+    {
+      "number": 14,
+      "state": "PRUNED",
+      "value": 0.11501941577453709,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.38168375593958104,
+        "decoder_lr": 0.00029054830388231705,
+        "rnn_type": "lstm",
+        "alpha_c": 1.7143683775296714
+      }
+    },
+    {
+      "number": 15,
+      "state": "COMPLETE",
+      "value": 0.14582130647998356,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 128,
+        "dropout": 0.35086800483167463,
+        "decoder_lr": 0.0009908707064515264,
+        "rnn_type": "gru",
+        "alpha_c": 1.2966860455271907
+      }
+    },
+    {
+      "number": 16,
+      "state": "PRUNED",
+      "value": 0.10222407851186996,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.4276768393091486,
+        "decoder_lr": 0.0003886856453142515,
+        "rnn_type": "gru",
+        "alpha_c": 0.982926946110946
+      }
+    },
+    {
+      "number": 17,
+      "state": "PRUNED",
+      "value": 0.11228465833693291,
+      "params": {
+        "embed_size": 128,
+        "hidden_size": 1024,
+        "attention_dim": 256,
+        "dropout": 0.33569949522285647,
+        "decoder_lr": 0.0006772763954185455,
+        "rnn_type": "lstm",
+        "alpha_c": 1.7416808891863114
+      }
+    },
+    {
+      "number": 18,
+      "state": "COMPLETE",
+      "value": 0.15394143220541237,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 1024,
+        "attention_dim": 128,
+        "dropout": 0.30348052419962124,
+        "decoder_lr": 0.00020449816704461494,
+        "rnn_type": "gru",
+        "alpha_c": 1.4151636822107752
+      }
+    },
+    {
+      "number": 19,
+      "state": "PRUNED",
+      "value": 0.10863517600020552,
+      "params": {
+        "embed_size": 512,
+        "hidden_size": 512,
+        "attention_dim": 512,
+        "dropout": 0.3748543418434953,
+        "decoder_lr": 0.00046885562871502005,
+        "rnn_type": "lstm",
+        "alpha_c": 0.9805096028868749
+      }
+    }
+  ]
+}

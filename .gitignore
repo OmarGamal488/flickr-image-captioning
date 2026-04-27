@@ -1,0 +1,54 @@
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+.python-version
+
+# Data & models (too big for git)
+data/raw
+data/raw/
+data/processed/*.pkl
+data/processed/*.parquet
+models/*.pth
+models/*.pt
+
+# Experiment tracking
+wandb/
+mlruns/
+experiments/optuna_study.db
+experiments/*.db
+
+# Results (regenerable)
+results/attention_maps/*
+results/gradcam/*
+!results/attention_maps/.gitkeep
+!results/gradcam/.gitkeep
+!results/.gitkeep
+
+# NLTK data
+nltk_data/
+
+# Cache / logs
+.cache/
+*.log
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Kaggle credentials
+kaggle.json
+
+# Hugging Face release staging (rebuilt by scripts/upload_to_hf.py)
+hf_release/*.pth
+hf_release/*.pkl
+hf_release/*.json
+# (README.md is committed — it's the model card source of truth)
+
+# Claude Code working files (must never reach Hugging Face / git remote)
+.claude/
+CLAUDE.md

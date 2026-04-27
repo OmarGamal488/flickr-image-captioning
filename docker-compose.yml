@@ -1,0 +1,55 @@
+# Two services sharing the same image:
+#   - api    → FastAPI microservice on http://localhost:8000 (Swagger at /docs)
+#   - gradio → Gradio demo          on http://localhost:7860
+#
+# Build once:
+#     docker compose build
+#
+# Run both:
+#     docker compose up
+#
+# Run only the API:
+#     docker compose up api
+#
+# Run only the Gradio demo:
+#     docker compose up gradio
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: flickr8k-captioning:latest
+    container_name: flickr8k-api
+    command: ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      - "8000:8000"
+    environment:
+      - CHECKPOINT_PATH=/app/models/attention_lstm.pth
+      - VOCAB_PATH=/app/data/processed/vocab.pkl
+      - METRICS_PATH=/app/results/metrics_beam5.json
+      - BEAM_WIDTH=5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  gradio:
+    # Reuses the image built by the `api` service — no duplicate build.
+    image: flickr8k-captioning:latest
+    container_name: flickr8k-gradio
+    depends_on:
+      api:
+        condition: service_started
+    command: ["python", "app.py"]
+    ports:
+      - "7860:7860"
+    environment:
+      - CHECKPOINT_PATH=/app/models/attention_lstm.pth
+      - VOCAB_PATH=/app/data/processed/vocab.pkl
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_PORT=7860
+    restart: unless-stopped
