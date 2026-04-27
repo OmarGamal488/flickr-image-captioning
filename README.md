@@ -1,12 +1,12 @@
 # Flickr8k Image Captioning
 
-ResNet50 + Bahdanau attention + LSTM/GRU decoder, trained on **Flickr8k**
-(8,091 images × 5 captions). Trained with teacher forcing + doubly
-stochastic regularization, decoded with beam search (length normalisation
-+ repetition penalty), evaluated with BLEU-1..4 / METEOR / CIDEr / ROUGE-L.
+> **ITI AI Track — Intake 46 — Deep Learning Project**
+> Author: **Omar Gamal ElKady**
 
-**Live demo:** [huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo](https://huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo)
-**Model card:** [huggingface.co/OmarGamal48812/flickr8k-attention-lstm](https://huggingface.co/OmarGamal48812/flickr8k-attention-lstm)
+ResNet50 + Bahdanau attention + LSTM/GRU decoder, trained on **Flickr8k** (8,091 images × 5 captions). Trained with teacher forcing + doubly stochastic regularization, decoded with beam search (length normalisation + repetition penalty), evaluated with BLEU-1..4 / METEOR / CIDEr / ROUGE-L.
+
+- **Live demo:** [huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo](https://huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo)
+- **Model card:** [huggingface.co/OmarGamal48812/flickr8k-attention-lstm](https://huggingface.co/OmarGamal48812/flickr8k-attention-lstm)
 
 ## Test-set results (beam = 5, full 1,091-image test split)
 
@@ -215,7 +215,7 @@ vocab = hf_hub_download("OmarGamal48812/flickr8k-attention-lstm", "vocab.pkl")
   caption diversity, per-image BLEU distribution, answers to project
   Q1–Q5).
 - [`reports/presentation.pptx`](reports/presentation.pptx) — defense
-  slide deck (5–7 minute walkthrough).
+  slide deck.
 
 ## Status
 
