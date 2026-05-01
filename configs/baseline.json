@@ -8,10 +8,10 @@
   "dropout": 0.5,
   "backbone": "resnet50",
 
-  "batch_size": 32,
-  "num_workers": 4,
-  "num_epochs": 15,
-  "lr": 3e-4,
+  "batch_size": 256,
+  "num_workers": 8,
+  "num_epochs": 25,
+  "lr": 1.2e-3,
   "weight_decay": 0.0,
   "grad_clip": 5.0,
   "scheduler_patience": 3,
@@ -21,7 +21,7 @@
   "save_dir": "models",
   "run_name": "baseline",
   "log_interval": 50,
-  "wandb_project": "flickr8k-captioning",
+  "wandb_project": "flickr-captioning",
   "wandb_mode": "online",
   "val_bleu_subset": 200
 }

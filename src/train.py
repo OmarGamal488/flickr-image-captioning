@@ -27,10 +27,11 @@ from src.dataset import (
     FlickrDataset,
     build_eval_transform,
     build_items,
+    build_processed_data,
     build_train_transform,
     collate_fn,
 )
-from src.decoder import DecoderLSTM
+from src.decoder import DecoderGRU, DecoderLSTM
 from src.encoder import EncoderCNN
 from src.utils import (
     AverageMeter,
@@ -231,6 +232,12 @@ def main() -> None:
     print(f"device: {device}")
     print(f"config: {json.dumps(asdict(cfg), indent=2)}")
 
+    # Build processed data if missing (auto-detects Flickr8k / Flickr30k)
+    detected_images_dir = build_processed_data(
+        raw_dir="data/raw", out_dir=cfg.processed_dir, seed=cfg.seed
+    )
+    cfg.images_dir = detected_images_dir
+
     # Vocabulary
     with open(os.path.join(cfg.processed_dir, "vocab.pkl"), "rb") as f:
         vocab: Vocabulary = pickle.load(f)
@@ -242,7 +249,8 @@ def main() -> None:
 
     # Model
     encoder = EncoderCNN(embed_size=cfg.embed_size, pretrained=True, freeze=True).to(device)
-    decoder = DecoderLSTM(
+    decoder_cls = DecoderGRU if getattr(cfg, "rnn_type", "lstm") == "gru" else DecoderLSTM
+    decoder = decoder_cls(
         vocab_size=len(vocab),
         embed_size=cfg.embed_size,
         hidden_size=cfg.hidden_size,
@@ -255,7 +263,7 @@ def main() -> None:
     n_params = sum(p.numel() for p in trainable)
     print(f"trainable params: {n_params/1e6:.2f}M")
 
-    loss_fn = nn.CrossEntropyLoss(ignore_index=Vocabulary.PAD_IDX)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=Vocabulary.PAD_IDX, label_smoothing=cfg.label_smoothing)
     optimizer = torch.optim.Adam(trainable, lr=cfg.lr, weight_decay=cfg.weight_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="max", factor=cfg.scheduler_factor, patience=cfg.scheduler_patience

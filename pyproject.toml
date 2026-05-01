@@ -1,5 +1,5 @@
 [project]
-name = "flickr8k-image-captioning"
+name = "flickr-image-captioning"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
@@ -14,7 +14,6 @@ dependencies = [
     "matplotlib>=3.10.8",
     "nltk>=3.9.4",
     "numpy>=2.4.4",
-    "optuna>=4.8.0",
     "pandas>=3.0.2",
     "pillow>=12.2.0",
     "pycocoevalcap>=1.2",

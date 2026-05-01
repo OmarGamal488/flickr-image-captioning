@@ -1,0 +1,17 @@
+{
+  "checkpoint": "models/attention_gru.pth",
+  "split": "test",
+  "n_images": 1873,
+  "method": "beam",
+  "beam_width": 5,
+  "max_len": 20,
+  "rnn_type": "gru",
+  "BLEU-1": 0.6182,
+  "BLEU-2": 0.466,
+  "BLEU-3": 0.3474,
+  "BLEU-4": 0.2578,
+  "METEOR": 0.4352,
+  "CIDEr": 0.6894,
+  "ROUGE-L": 0.4947,
+  "wall_clock_s": 52.0
+}

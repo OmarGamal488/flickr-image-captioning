@@ -1,0 +1,29 @@
+{
+  "images_dir": "data/raw/Images",
+  "processed_dir": "data/processed",
+
+  "embed_size": 256,
+  "hidden_size": 512,
+  "num_layers": 1,
+  "dropout": 0.5,
+  "backbone": "resnet50",
+  "rnn_type": "lstm",
+
+  "batch_size": 512,
+  "num_workers": 16,
+  "num_epochs": 25,
+  "lr": 2.4e-3,
+  "weight_decay": 0.0,
+  "grad_clip": 5.0,
+  "scheduler_patience": 3,
+  "scheduler_factor": 0.5,
+  "label_smoothing": 0.1,
+
+  "seed": 42,
+  "save_dir": "models",
+  "run_name": "baseline_lstm",
+  "log_interval": 50,
+  "wandb_project": "flickr-captioning",
+  "wandb_mode": "online",
+  "val_bleu_subset": 500
+}

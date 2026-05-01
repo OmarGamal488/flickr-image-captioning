@@ -1,0 +1,17 @@
+{
+  "checkpoint": "models/attention_lstm.pth",
+  "split": "test",
+  "n_images": 1873,
+  "method": "beam",
+  "beam_width": 5,
+  "max_len": 20,
+  "rnn_type": "lstm",
+  "BLEU-1": 0.6258,
+  "BLEU-2": 0.477,
+  "BLEU-3": 0.3621,
+  "BLEU-4": 0.275,
+  "METEOR": 0.4466,
+  "CIDEr": 0.7316,
+  "ROUGE-L": 0.5055,
+  "wall_clock_s": 52.5
+}

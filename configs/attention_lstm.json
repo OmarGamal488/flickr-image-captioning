@@ -4,31 +4,34 @@
 
   "encoder_dim": 2048,
   "embed_size": 256,
-  "hidden_size": 512,
+  "hidden_size": 1024,
   "attention_dim": 256,
   "dropout": 0.5,
   "rnn_type": "lstm",
 
   "alpha_c": 1.0,
 
-  "batch_size": 32,
-  "num_workers": 4,
+  "batch_size": 256,
+  "num_workers": 16,
   "num_epochs": 25,
-  "decoder_lr": 4e-4,
-  "encoder_lr": 1e-5,
+  "decoder_lr": 3.2e-3,
+  "encoder_lr": 8e-5,
   "weight_decay": 0.0,
   "grad_clip": 5.0,
   "scheduler_patience": 3,
   "scheduler_factor": 0.5,
 
-  "fine_tune_start_epoch": 16,
+  "fine_tune_start_epoch": 10,
   "fine_tune_blocks": 2,
+
+  "label_smoothing": 0.1,
+  "scheduled_sampling_max": 0.25,
 
   "seed": 42,
   "save_dir": "models",
   "run_name": "attention_lstm",
   "log_interval": 50,
-  "val_bleu_subset": 200,
-  "wandb_project": "flickr8k-captioning",
+  "val_bleu_subset": 500,
+  "wandb_project": "flickr-captioning",
   "wandb_mode": "online"
 }

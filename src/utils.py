@@ -45,10 +45,10 @@ class AverageMeter:
 
 @dataclass
 class AttentionConfig:
-    """Config for the attention-based captioner used by train_attention.py + hpo.py.
+    """Config for the attention-based captioner used by train_attention.py.
 
     Kept in utils (lightweight module) so ``src.inference`` can import it without
-    pulling in nltk/tqdm/optuna via train_attention.py — the FastAPI and Gradio
+    pulling in nltk/tqdm via train_attention.py — the FastAPI and Gradio
     runtimes only need torch + numpy and this class.
     """
 
@@ -91,6 +91,13 @@ class AttentionConfig:
     wandb_project: str = "flickr8k-captioning"
     wandb_mode: str = "online"
 
+    # GloVe init (optional — empty string = disabled)
+    glove_path: str = ""
+
+    # Regularization
+    label_smoothing: float = 0.0
+    scheduled_sampling_max: float = 0.0  # max fraction of steps using model's own prediction
+
 
 def load_att_config(path: str) -> "AttentionConfig":
     with open(path) as f:
@@ -110,6 +117,7 @@ class TrainConfig:
     num_layers: int = 1
     dropout: float = 0.5
     backbone: str = "resnet50"
+    rnn_type: str = "lstm"          # lstm / gru (baseline decoder only)
 
     # Training
     batch_size: int = 32
@@ -128,6 +136,7 @@ class TrainConfig:
     log_interval: int = 50
     wandb_project: str = "flickr8k-captioning"
     wandb_mode: str = "online"  # online / offline / disabled
+    label_smoothing: float = 0.0
     val_bleu_subset: int = 200  # cap per-epoch val BLEU probe for speed
 
 
@@ -164,6 +173,50 @@ def save_checkpoint(
         },
         path,
     )
+
+
+def load_glove_embeddings(
+    glove_path: str,
+    vocab: Any,           # Vocabulary — avoid circular import
+    embed_size: int,
+) -> torch.Tensor:
+    """Build an embedding weight matrix from a GloVe text file.
+
+    Each row corresponds to a vocab token. Tokens absent from GloVe keep their
+    random initialization. If the GloVe dimension differs from ``embed_size``,
+    vectors are zero-padded (GloVe dim < embed_size) or truncated (GloVe dim >
+    embed_size).
+
+    Returns a ``(vocab_size, embed_size)`` float32 tensor.
+    """
+    print(f"[glove] loading vectors from {glove_path} ...")
+    glove: dict[str, np.ndarray] = {}
+    with open(glove_path, encoding="utf-8") as f:
+        for line in f:
+            parts = line.rstrip().split(" ")
+            word = parts[0]
+            vec = np.array(parts[1:], dtype=np.float32)
+            glove[word] = vec
+
+    glove_dim = next(iter(glove.values())).shape[0]
+    print(f"[glove] loaded {len(glove):,} vectors (dim={glove_dim})")
+
+    weight = torch.zeros(len(vocab), embed_size)
+    torch.nn.init.uniform_(weight, -0.1, 0.1)  # default for unknown tokens
+
+    hits = 0
+    for token, idx in vocab.stoi.items():
+        if token in glove:
+            vec = torch.from_numpy(glove[token])
+            if glove_dim >= embed_size:
+                weight[idx] = vec[:embed_size]
+            else:
+                weight[idx, :glove_dim] = vec
+            hits += 1
+
+    coverage = hits / max(len(vocab) - 4, 1) * 100  # exclude 4 special tokens
+    print(f"[glove] vocab coverage: {hits}/{len(vocab)} ({coverage:.1f}%)")
+    return weight
 
 
 def load_checkpoint(

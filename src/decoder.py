@@ -102,6 +102,81 @@ class DecoderLSTM(nn.Module):
         return generated
 
 
+class DecoderGRU(nn.Module):
+    """Show-and-Tell baseline decoder using GRU (no attention).
+
+    Drop-in alternative to ``DecoderLSTM`` — identical interface, same forward
+    signature, same ``generate_greedy`` API. Only the RNN cell differs.
+    """
+
+    def __init__(
+        self,
+        vocab_size: int,
+        embed_size: int = 256,
+        hidden_size: int = 512,
+        num_layers: int = 1,
+        dropout: float = 0.5,
+    ) -> None:
+        super().__init__()
+        self.vocab_size = vocab_size
+        self.embed_size = embed_size
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
+
+        self.embedding = nn.Embedding(vocab_size, embed_size, padding_idx=Vocabulary.PAD_IDX)
+        self.gru = nn.GRU(
+            input_size=embed_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            batch_first=True,
+            dropout=dropout if num_layers > 1 else 0.0,
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_size, vocab_size)
+
+    def forward(self, features: torch.Tensor, captions: torch.Tensor) -> torch.Tensor:
+        embeddings = self.embedding(captions[:, :-1])                    # (B, T-1, E)
+        inputs = torch.cat([features.unsqueeze(1), embeddings], dim=1)   # (B, T, E)
+        hiddens, _ = self.gru(inputs)                                    # (B, T, H)
+        logits = self.fc(self.dropout(hiddens))                          # (B, T, V)
+        return logits
+
+    @torch.no_grad()
+    def generate_greedy(
+        self,
+        features: torch.Tensor,
+        max_len: int = 20,
+        end_idx: int = Vocabulary.END_IDX,
+    ) -> list[list[int]]:
+        """Greedy decoding. ``features`` shape: (B, embed_size). Returns per-sample id lists."""
+        self.eval()
+        B = features.size(0)
+        device = features.device
+        state: torch.Tensor | None = None
+        inputs = features.unsqueeze(1)                                   # (B, 1, E)
+
+        generated = [[] for _ in range(B)]
+        finished = torch.zeros(B, dtype=torch.bool, device=device)
+
+        for _ in range(max_len):
+            out, state = self.gru(inputs, state)                         # (B, 1, H)
+            logits = self.fc(out.squeeze(1))                             # (B, V)
+            tokens = logits.argmax(dim=-1)                               # (B,)
+
+            for i in range(B):
+                if not finished[i]:
+                    tok = int(tokens[i].item())
+                    generated[i].append(tok)
+                    if tok == end_idx:
+                        finished[i] = True
+
+            if bool(finished.all()):
+                break
+            inputs = self.embedding(tokens).unsqueeze(1)                 # (B, 1, E)
+
+        return generated
+
+
 class DecoderAttention(nn.Module):
     """Bahdanau-attention decoder.
 
@@ -163,12 +238,14 @@ class DecoderAttention(nn.Module):
         return h, c
 
     def forward(
-        self, features: torch.Tensor, captions: torch.Tensor
+        self,
+        features: torch.Tensor,
+        captions: torch.Tensor,
+        ss_prob: float = 0.0,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         # features : (B, P, enc_dim)
         # captions : (B, T) with <start>...<end>
-        # At step t: feed embedding of captions[:, t] (previous token), predict captions[:, t+1].
-        # Loop runs T-1 steps; logits[:, t] is trained against captions[:, t+1] in the loss.
+        # ss_prob  : scheduled sampling — probability of feeding model's own prediction
         B, T = captions.shape
         T_out = T - 1
 
@@ -179,8 +256,13 @@ class DecoderAttention(nn.Module):
         alphas = features.new_zeros(B, T_out, features.size(1))
 
         for t in range(T_out):
+            if t > 0 and ss_prob > 0.0 and torch.rand(1).item() < ss_prob:
+                inp_emb = self.embedding(logits[:, t - 1].argmax(dim=-1))  # (B, E)
+            else:
+                inp_emb = embeddings[:, t]                               # (B, E)
+
             context, alpha = self.attention(features, h)                 # (B, enc_dim), (B, P)
-            inp = torch.cat([embeddings[:, t], context], dim=1)           # (B, E+enc_dim)
+            inp = torch.cat([inp_emb, context], dim=1)                   # (B, E+enc_dim)
             if self.rnn_type == "lstm":
                 h, c = self.rnn_cell(inp, (h, c))
             else:

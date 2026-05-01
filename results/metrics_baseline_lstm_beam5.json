@@ -1,0 +1,17 @@
+{
+  "checkpoint": "models/baseline_lstm.pth",
+  "split": "test",
+  "n_images": 1873,
+  "method": "beam",
+  "beam_width": 5,
+  "max_len": 20,
+  "rnn_type": "lstm",
+  "BLEU-1": 0.6195,
+  "BLEU-2": 0.4425,
+  "BLEU-3": 0.3094,
+  "BLEU-4": 0.2159,
+  "METEOR": 0.4026,
+  "CIDEr": 0.4897,
+  "ROUGE-L": 0.4616,
+  "wall_clock_s": 48.7
+}

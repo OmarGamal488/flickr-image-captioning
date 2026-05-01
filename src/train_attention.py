@@ -30,6 +30,7 @@ from src.dataset import (
     FlickrDataset,
     build_eval_transform,
     build_items,
+    build_processed_data,
     build_train_transform,
     collate_fn,
 )
@@ -117,6 +118,7 @@ def train_one_epoch(
     log_interval: int,
     wandb_run=None,
     global_step: int = 0,
+    ss_prob: float = 0.0,
 ) -> tuple[float, float, int]:
     encoder.train()
     decoder.train()
@@ -129,7 +131,7 @@ def train_one_epoch(
         captions = captions.to(device, non_blocking=True)
 
         features = encoder(images)                              # (B, P, enc_dim)
-        logits, alphas = decoder(features, captions)            # (B, T-1, V), (B, T-1, P)
+        logits, alphas = decoder(features, captions, ss_prob)   # (B, T-1, V), (B, T-1, P)
 
         # Shifted targets: at step t predict captions[:, t+1] given input captions[:, t]
         targets = captions[:, 1:]                               # (B, T-1)
@@ -282,6 +284,12 @@ def main() -> None:
     print(f"device: {device}")
     print(f"config: {json.dumps(asdict(cfg), indent=2)}")
 
+    # Build processed data if missing (auto-detects Flickr8k / Flickr30k)
+    detected_images_dir = build_processed_data(
+        raw_dir="data/raw", out_dir=cfg.processed_dir, seed=cfg.seed
+    )
+    cfg.images_dir = detected_images_dir
+
     # Vocabulary
     with open(os.path.join(cfg.processed_dir, "vocab.pkl"), "rb") as f:
         vocab: Vocabulary = pickle.load(f)
@@ -303,11 +311,16 @@ def main() -> None:
         rnn_type=cfg.rnn_type,
     ).to(device)
 
+    if cfg.glove_path:
+        from src.utils import load_glove_embeddings
+        glove_weights = load_glove_embeddings(cfg.glove_path, vocab, cfg.embed_size)
+        decoder.embedding.weight.data.copy_(glove_weights)
+
     n_dec = sum(p.numel() for p in decoder.parameters() if p.requires_grad)
     n_enc = sum(p.numel() for p in encoder.parameters() if p.requires_grad)
     print(f"trainable params: decoder {n_dec/1e6:.2f}M, encoder {n_enc/1e6:.2f}M")
 
-    loss_fn = nn.CrossEntropyLoss(ignore_index=Vocabulary.PAD_IDX)
+    loss_fn = nn.CrossEntropyLoss(ignore_index=Vocabulary.PAD_IDX, label_smoothing=cfg.label_smoothing)
     optimizer = _build_optimizer(
         encoder, decoder, cfg.decoder_lr, cfg.encoder_lr, cfg.weight_decay
     )
@@ -349,10 +362,14 @@ def main() -> None:
             n_enc = sum(p.numel() for p in encoder.parameters() if p.requires_grad)
             print(f"[epoch {epoch}] unfroze last {cfg.fine_tune_blocks} ResNet blocks — trainable encoder params {n_enc/1e6:.2f}M")
 
+        # Linear scheduled sampling ramp: 0 → scheduled_sampling_max over all epochs
+        ss_prob = cfg.scheduled_sampling_max * (epoch - 1) / max(cfg.num_epochs - 1, 1)
+
         t0 = time.perf_counter()
         train_ce, train_att, global_step = train_one_epoch(
             encoder, decoder, train_loader, optimizer, loss_fn, cfg.alpha_c,
             device, cfg.grad_clip, cfg.log_interval, wandb_run, global_step,
+            ss_prob=ss_prob,
         )
         val_loss = validate(encoder, decoder, val_loader, loss_fn, device)
         bleu = validate_bleu(encoder, decoder, val_split, vocab, cfg, device, cfg.val_bleu_subset)

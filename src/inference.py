@@ -23,9 +23,9 @@ from PIL import Image
 from torch import nn
 
 from src.dataset import build_eval_transform
-from src.decoder import DecoderAttention
-from src.encoder import EncoderCNN_Attention
-from src.utils import AttentionConfig
+from src.decoder import DecoderAttention, DecoderGRU, DecoderLSTM
+from src.encoder import EncoderCNN, EncoderCNN_Attention
+from src.utils import AttentionConfig, TrainConfig
 from src.vocabulary import Vocabulary
 
 
@@ -45,20 +45,40 @@ def load_attention_model(
     ckpt_path: str,
     vocab_size: int,
     device: torch.device,
-) -> tuple[nn.Module, DecoderAttention, AttentionConfig]:
-    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
-    cfg = AttentionConfig(**ckpt["config"])
+) -> tuple[nn.Module, nn.Module, AttentionConfig | TrainConfig]:
+    """Load either an attention or a baseline checkpoint.
 
-    encoder = EncoderCNN_Attention(pretrained=False, freeze=True).to(device)
-    decoder = DecoderAttention(
-        vocab_size=vocab_size,
-        encoder_dim=cfg.encoder_dim,
-        embed_size=cfg.embed_size,
-        hidden_size=cfg.hidden_size,
-        attention_dim=cfg.attention_dim,
-        dropout=cfg.dropout,
-        rnn_type=cfg.rnn_type,
-    ).to(device)
+    Detection: if the saved config dict contains ``attention_dim`` it is an
+    attention model (``AttentionConfig``); otherwise it is a baseline model
+    (``TrainConfig`` — ``DecoderLSTM`` or ``DecoderGRU``).
+    """
+    ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
+    config_dict: dict = ckpt["config"]
+
+    if "attention_dim" in config_dict:
+        cfg = AttentionConfig(**config_dict)
+        encoder = EncoderCNN_Attention(pretrained=False, freeze=True).to(device)
+        decoder: nn.Module = DecoderAttention(
+            vocab_size=vocab_size,
+            encoder_dim=cfg.encoder_dim,
+            embed_size=cfg.embed_size,
+            hidden_size=cfg.hidden_size,
+            attention_dim=cfg.attention_dim,
+            dropout=cfg.dropout,
+            rnn_type=cfg.rnn_type,
+        ).to(device)
+    else:
+        cfg = TrainConfig(**config_dict)
+        encoder = EncoderCNN(embed_size=cfg.embed_size, pretrained=False, freeze=True).to(device)
+        decoder_cls = DecoderGRU if cfg.rnn_type == "gru" else DecoderLSTM
+        decoder = decoder_cls(
+            vocab_size=vocab_size,
+            embed_size=cfg.embed_size,
+            hidden_size=cfg.hidden_size,
+            num_layers=cfg.num_layers,
+            dropout=cfg.dropout,
+        ).to(device)
+
     encoder.load_state_dict(ckpt["encoder_state"])
     decoder.load_state_dict(ckpt["decoder_state"])
     encoder.eval()
@@ -235,6 +255,130 @@ def generate_beam(
 
 
 # ---------------------------------------------------------------------------
+# Baseline beam search (DecoderLSTM / DecoderGRU — no attention)
+# ---------------------------------------------------------------------------
+
+
+@torch.no_grad()
+def generate_beam_baseline(
+    encoder: nn.Module,
+    decoder: DecoderLSTM | DecoderGRU,
+    image_tensor: torch.Tensor,
+    vocab: Vocabulary,
+    beam_width: int = 5,
+    max_len: int = 20,
+    length_alpha: float = 0.7,
+    repetition_penalty: float = 1.2,
+) -> list[BeamResult]:
+    """Beam search for Show-and-Tell baseline decoders (LSTM or GRU, no attention)."""
+    encoder.eval()
+    decoder.eval()
+    device = image_tensor.device
+    assert image_tensor.size(0) == 1, "beam search is per-image"
+
+    features = encoder(image_tensor)                                  # (1, embed_size)
+    is_lstm = isinstance(decoder, DecoderLSTM)
+    rnn = decoder.lstm if is_lstm else decoder.gru
+
+    # Step 0: image features are the first RNN input (no token embedding).
+    out0, state0 = rnn(features.unsqueeze(1))                         # out0: (1,1,H)
+    logits0 = decoder.fc(out0.squeeze(1))                             # (1, V)
+    log_probs0 = torch.log_softmax(logits0, dim=-1)
+
+    topk_vals0, topk_idx0 = log_probs0[0].topk(beam_width)
+
+    if is_lstm:
+        h0, c0 = state0                                               # each (L,1,H)
+    else:
+        h0, c0 = state0, None
+
+    def _finalize(cand: dict) -> BeamResult:
+        ids = cand["tokens"]
+        norm = cand["score"] / max(len(ids), 1) ** length_alpha
+        return BeamResult(caption=vocab.denumericalize(ids), score=norm, token_ids=ids)
+
+    alive: list[dict] = []
+    completed: list[BeamResult] = []
+
+    for j in range(beam_width):
+        tok = int(topk_idx0[j].item())
+        logp = float(topk_vals0[j].item())
+        entry = {"score": logp, "tokens": [tok], "h": h0, "c": c0}
+        if tok == Vocabulary.END_IDX:
+            completed.append(_finalize(entry))
+        else:
+            alive.append(entry)
+
+    for _ in range(max_len - 1):
+        if not alive:
+            break
+
+        n = len(alive)
+        last_toks = torch.tensor(
+            [c["tokens"][-1] for c in alive], device=device, dtype=torch.long
+        )
+        emb = decoder.embedding(last_toks).unsqueeze(1)               # (n,1,E)
+
+        if is_lstm:
+            h_batch = torch.cat([c["h"] for c in alive], dim=1)       # (L,n,H)
+            c_batch = torch.cat([c["c"] for c in alive], dim=1)
+            out, (h_new, c_new) = rnn(emb, (h_batch, c_batch))        # out:(n,1,H)
+        else:
+            h_batch = torch.cat([c["h"] for c in alive], dim=1)
+            out, h_new = rnn(emb, h_batch)
+            c_new = None
+
+        logits = decoder.fc(out.squeeze(1))                           # (n, V)
+        log_probs = torch.log_softmax(logits, dim=-1)
+
+        if repetition_penalty != 1.0:
+            for i, cand in enumerate(alive):
+                for tok in cand["tokens"]:
+                    if tok >= 4:
+                        log_probs[i, tok] /= repetition_penalty
+
+        k = beam_width
+        topk_vals, topk_idx = log_probs.topk(k, dim=-1)
+
+        remaining = beam_width - len(completed)
+        if remaining <= 0:
+            break
+
+        children: list[dict] = []
+        for i, cand in enumerate(alive):
+            cand_h = h_new[:, i : i + 1, :]
+            cand_c = c_new[:, i : i + 1, :] if c_new is not None else None
+            for j in range(k):
+                tok = int(topk_idx[i, j].item())
+                logp = float(topk_vals[i, j].item())
+                children.append({
+                    "score": cand["score"] + logp,
+                    "tokens": cand["tokens"] + [tok],
+                    "h": cand_h,
+                    "c": cand_c,
+                })
+
+        children.sort(key=lambda c: -c["score"])
+        children = children[:remaining]
+
+        new_alive: list[dict] = []
+        for cand in children:
+            if cand["tokens"][-1] == Vocabulary.END_IDX:
+                completed.append(_finalize(cand))
+            else:
+                new_alive.append(cand)
+        alive = new_alive
+
+    for cand in alive:
+        completed.append(_finalize(cand))
+
+    if not completed:
+        return [BeamResult("", -float("inf"), [])]
+    completed.sort(key=lambda r: -r.score)
+    return completed[:beam_width]
+
+
+# ---------------------------------------------------------------------------
 # High-level API
 # ---------------------------------------------------------------------------
 
@@ -299,10 +443,12 @@ def batch_generate(
         return out
 
     # beam search, per-image
+    _is_baseline = isinstance(decoder, (DecoderLSTM, DecoderGRU))
+    _beam_fn = generate_beam_baseline if _is_baseline else generate_beam
     for img_id in image_ids:
         with Image.open(os.path.join(images_dir, img_id)) as img:
             tensor = transform(img.convert("RGB")).unsqueeze(0).to(device)
-        beams = generate_beam(
+        beams = _beam_fn(
             encoder, decoder, tensor, vocab, beam_width=beam_width, max_len=max_len
         )
         out[img_id] = beams[0].caption
