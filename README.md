@@ -195,7 +195,7 @@ vocab = hf_hub_download("OmarGamal48812/flickr8k-attention-lstm", "vocab.pkl")
 - [x] Phase 5 — Inference + evaluation (`src/evaluate.py`, `results/metrics_*.json`)
 - [x] Phase 6 — Error analysis (`notebooks/03_error_analysis.ipynb`)
 - [x] Phase 7 — Deployment (Gradio + FastAPI + Docker + HF release + pytest + CI)
-- [ ] Phase 8 — Final report PDF + slides
+- [x] Phase 8 — Final report PDF + slides
 
 ## License
 
