@@ -5,8 +5,8 @@
 
 ResNet50 + Bahdanau attention + LSTM/GRU decoder, trained on **Flickr8k + Flickr30k** (~39,874 images × 5 captions, vocab=10,111). Trained with teacher forcing, label smoothing, scheduled sampling, and doubly stochastic regularization. Decoded with beam search (length normalisation + repetition penalty), evaluated with BLEU-1..4 / METEOR / CIDEr / ROUGE-L.
 
-- **Live demo:** [huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo](https://huggingface.co/spaces/OmarGamal48812/flickr8k-captioning-demo)
-- **Model card:** [huggingface.co/OmarGamal48812/flickr8k-attention-lstm](https://huggingface.co/OmarGamal48812/flickr8k-attention-lstm)
+- **Live demo:** [huggingface.co/spaces/OmarGamal48812/flickr-captioning-demo](https://huggingface.co/spaces/OmarGamal48812/flickr-captioning-demo)
+- **Model card:** [huggingface.co/OmarGamal48812/flickr-captioning](https://huggingface.co/OmarGamal48812/flickr-captioning)
 
 ## Test-set results (beam = 5, full test split)
 
@@ -171,13 +171,13 @@ tests/               # pytest suite
 
 The trained `attention_gru_glove` checkpoint is published on the Hub:
 
-**[huggingface.co/OmarGamal48812/flickr8k-attention-lstm](https://huggingface.co/OmarGamal48812/flickr8k-attention-lstm)**
+**[huggingface.co/OmarGamal48812/flickr-captioning](https://huggingface.co/OmarGamal48812/flickr-captioning)**
 
 ```python
 from huggingface_hub import hf_hub_download
 
-ckpt  = hf_hub_download("OmarGamal48812/flickr8k-attention-lstm", "attention_gru_glove.pth")
-vocab = hf_hub_download("OmarGamal48812/flickr8k-attention-lstm", "vocab.pkl")
+ckpt  = hf_hub_download("OmarGamal48812/flickr-captioning", "attention_gru_glove.pth")
+vocab = hf_hub_download("OmarGamal48812/flickr-captioning", "vocab.pkl")
 ```
 
 ## Documentation
