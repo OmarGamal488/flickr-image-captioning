@@ -313,7 +313,6 @@ def generate_beam_baseline(
         if not alive:
             break
 
-        n = len(alive)
         last_toks = torch.tensor(
             [c["tokens"][-1] for c in alive], device=device, dtype=torch.long
         )
